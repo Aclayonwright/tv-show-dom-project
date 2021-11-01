@@ -1,8 +1,18 @@
 //You can edit ALL of the code here
-function setup() {
-    const allEpisodes = getAllEpisodes();
+
+async function fetchEpisodes() {
+    const response = await fetch("https://api.tvmaze.com/shows/82/episodes");
+    const data = response.json();
+    return data
+}
+
+
+async function setup() {
+
+    const allEpisodes = await fetchEpisodes();
     searchInputCreate(allEpisodes);
     makePageForEpisodes(allEpisodes);
+    episodeSelectorSearch(allEpisodes);
 }
 
 function makePageForEpisodes(episodeList) {
@@ -36,10 +46,12 @@ function makePageForEpisodes(episodeList) {
 function searchInputCreate(allEpisodes) {
     const div = document.createElement("div");
     div.classList.add("input-container");
+
+    episodeSelector(allEpisodes, div);
     const para = document.createElement("p");
     para.setAttribute("id", "display-episode");
 
-    const node = document.createTextNode(`Displaying ${allEpisodes.length}episodes`);
+    const node = document.createTextNode(`Displaying ${allEpisodes.length} episodes`);
 
     para.appendChild(node);
     const input = document.createElement("input");
@@ -72,6 +84,69 @@ function searchInput() {
 
     });
 }
+
+function episodeSelector(allEpisodes, div) {
+    const select = document.createElement("select");
+    select.setAttribute("id", "dropdown-episodes");
+    div.appendChild(select);
+
+    const seeAllEpisodes = document.createElement("option");
+    seeAllEpisodes.setAttribute("value", "All Episodes");
+    const textNode = document.createTextNode("All Episodes");
+    seeAllEpisodes.appendChild(textNode);
+    select.appendChild(seeAllEpisodes);
+
+    allEpisodes.forEach((episode) => {
+        const {
+            name,
+            number,
+            season
+
+        } = episode;
+
+        const option = document.createElement("option");
+        option.setAttribute("value", name);
+        const textNode = document.createTextNode(`SO${season}EO${number} - ${name}`);
+        option.appendChild(textNode);
+        select.appendChild(option);
+    });
+}
+
+function episodeSelectorSearch(allEpisodes) {
+    document.querySelector("#dropdown-episodes").addEventListener("change", (e) => {
+        console.log(e.target);
+        const filter = e.target.value.toUpperCase();
+        if (filter === "ALL EPISODES") {
+            return makePageForEpisodes(allEpisodes);
+        }
+        allEpisodes.map((episode) => {
+            if (episode.name.toUpperCase().indexOf(filter) > -1) {
+                return makePageForEpisodes([episode])
+            }
+
+        })
+    })
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
