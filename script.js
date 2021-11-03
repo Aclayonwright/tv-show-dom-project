@@ -1,18 +1,65 @@
 //You can edit ALL of the code here
 
-async function fetchEpisodes() {
-    const response = await fetch("https://api.tvmaze.com/shows/82/episodes");
-    const data = response.json();
-    return data
+let allEpisodes = [];
+let allShows = [];
+let showsUrl = "https://api.tvmaze.com/shows";
+let episodesUrl = "https://api.tvmaze.com/shows/82/episodes";
+
+
+function sortLiveData(data) {
+    data.sort((a, b) => {
+        if (a.name > b.name) {
+            return 1
+        } else {
+            return -1
+        }
+    })
+
 }
 
 
-async function setup() {
 
-    const allEpisodes = await fetchEpisodes();
-    searchInputCreate(allEpisodes);
+
+// async function fetchEpisodes() {
+//     const response = await fetch("https://api.tvmaze.com/shows/82/episodes");
+//     const data = response.json();
+//     return data
+// }
+function getShowsLiveData(url) {
+    console.log(url);
+    fetch(url).then((res) => res.json())
+        .then((data) => {
+            sortLiveData(data);
+            getEpisodesLiveData(data, episodesUrl)
+        })
+        .catch((err) => {
+
+        });
+}
+
+function getEpisodesLiveData(showsData, episodesUrl1) {
+    fetch(episodesUrl1).then((res) => res.json())
+        .then((episodesData) => {
+            setup(episodesData, showsData);
+
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
+}
+
+
+function setup(episodesData, showsData) {
+
+
+    allEpisodes = episodesData;
+    allShows = showsData;
+    console.log(allEpisodes, allShows);
+    searchInputCreate();
     makePageForEpisodes(allEpisodes);
-    episodeSelectorSearch(allEpisodes);
+    showsSelectorSearch();
+    episodeSelectorSearch();
 }
 
 function makePageForEpisodes(episodeList) {
@@ -43,10 +90,10 @@ function makePageForEpisodes(episodeList) {
     rootElem.appendChild(div);
 }
 
-function searchInputCreate(allEpisodes) {
+function searchInputCreate() {
     const div = document.createElement("div");
     div.classList.add("input-container");
-
+    showsSelector(div, allShows);
     episodeSelector(allEpisodes, div);
     const para = document.createElement("p");
     para.setAttribute("id", "display-episode");
@@ -112,7 +159,7 @@ function episodeSelector(allEpisodes, div) {
     });
 }
 
-function episodeSelectorSearch(allEpisodes) {
+function episodeSelectorSearch() {
     document.querySelector("#dropdown-episodes").addEventListener("change", (e) => {
         console.log(e.target);
         const filter = e.target.value.toUpperCase();
@@ -126,30 +173,41 @@ function episodeSelectorSearch(allEpisodes) {
 
         })
     })
-};
+}
+
+function changeDisplayEpisodesText(searchEpisodesLength) {
+    const para = document.querySelector("display-episodes");
+    para.textContent = `Displaying ${searchEpisodesLength}/${allEpisodes.length}episodes`;
+
+}
+
+function showsSelector(div, selector) {
+    const select = document.createElement("select");
+    select.setAttribute("id", "dropdown-shows")
+    div.appendChild(select);
+
+    selector.forEach((shows, index) => {
+        const option = document.createElement("option");
+        option.setAttribute("value", shows.name);
+        option.setAttribute("id", shows.id);
+
+        const textNode = document.createTextNode(shows.name);
+        option.appendChild(textNode);
+        select.appendChild(option);
+
+    })
+
+}
+
+function showsSelectorSearch() {
 
 
+    document.querySelector("#dropdown-shows").addEventListener("change", (e) => {
+        const id = e.target[e.target.selectedIndex].id;
+        episodesUrl = `${showsUrl}/${id}/episodes`;
+        getEpisodesLiveData(allShows, episodesUrl);
 
+    });
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-window.onload = setup;
+window.onload = getShowsLiveData(showsUrl);
