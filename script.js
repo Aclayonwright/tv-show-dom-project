@@ -24,7 +24,7 @@ function sortLiveData(data) {
 //     const response = await fetch("https://api.tvmaze.com/shows/82/episodes");
 //     const data = response.json();
 //     return data
-// }
+
 function getShowsLiveData(url) {
     console.log(url);
     fetch(url).then((res) => res.json())
@@ -91,12 +91,22 @@ function makePageForEpisodes(episodeList) {
 }
 
 function searchInputCreate() {
+
+    const existDiv = document.getElementsByClassName('input-container');
+    console.log(existDiv);
+
+    if (existDiv.length !== 0) {
+        changeDisplayEpisodesText(allEpisodes.length);
+        episodeSelector(allEpisodes, existDiv[0]);
+        return;
+
+    }
     const div = document.createElement("div");
     div.classList.add("input-container");
     showsSelector(div, allShows);
     episodeSelector(allEpisodes, div);
     const para = document.createElement("p");
-    para.setAttribute("id", "display-episode");
+    para.setAttribute("id", "display-episodes");
 
     const node = document.createTextNode(`Displaying ${allEpisodes.length} episodes`);
 
@@ -113,7 +123,7 @@ function searchInputCreate() {
 }
 
 function searchInput() {
-    const para = document.querySelector("#display-episode");
+    const para = document.querySelector("#display-episodes");
     const input = document.getElementById("search-episode");
     const filter = input.value.toUpperCase();
     const filteredEpisodes = [];
@@ -133,10 +143,15 @@ function searchInput() {
 }
 
 function episodeSelector(allEpisodes, div) {
-    const select = document.createElement("select");
-    select.setAttribute("id", "dropdown-episodes");
-    div.appendChild(select);
-
+    console.log(div);
+    const existDiv = document.getElementById("dropdown-episodes");
+    let select = existDiv;
+    if (existDiv === null) {
+        select = document.createElement("select");
+        select.setAttribute("id", "dropdown-episodes");
+        div.appendChild(select);
+    }
+    select.textContent = "";
     const seeAllEpisodes = document.createElement("option");
     seeAllEpisodes.setAttribute("value", "All Episodes");
     const textNode = document.createTextNode("All Episodes");
@@ -164,8 +179,12 @@ function episodeSelectorSearch() {
         console.log(e.target);
         const filter = e.target.value.toUpperCase();
         if (filter === "ALL EPISODES") {
+            changeDisplayEpisodesText(allEpisodes.length);
             return makePageForEpisodes(allEpisodes);
         }
+        changeDisplayEpisodesText(1);
+
+
         allEpisodes.map((episode) => {
             if (episode.name.toUpperCase().indexOf(filter) > -1) {
                 return makePageForEpisodes([episode])
@@ -176,12 +195,13 @@ function episodeSelectorSearch() {
 }
 
 function changeDisplayEpisodesText(searchEpisodesLength) {
-    const para = document.querySelector("display-episodes");
+    const para = document.querySelector("#display-episodes");
     para.textContent = `Displaying ${searchEpisodesLength}/${allEpisodes.length}episodes`;
 
 }
 
 function showsSelector(div, selector) {
+
     const select = document.createElement("select");
     select.setAttribute("id", "dropdown-shows")
     div.appendChild(select);
